@@ -1,13 +1,14 @@
 #pragma once
 
 #include <CL/sycl.hpp>
-#include <core/Stream.h>
+#include <c10/core/Stream.h>
 #include <cassert>
 #include <iostream>
 #include <vector>
 #include <oneapi/mkl.hpp>
 #include <oneapi/mkl/rng/device.hpp>
 #include <ext/intel/experimental/bfloat16.hpp>
+#include <ipex.h>
 
 using bf16 = sycl::ext::intel::experimental::bfloat16;
 
