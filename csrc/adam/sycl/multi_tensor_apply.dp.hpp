@@ -9,7 +9,7 @@
 #include <ATen/AccumulateType.h>
 #include <core/Stream.h>
 #include "sycl/context.hpp"
-#include "../compat.h"
+#include "compat.h"
 
 #include <assert.h>
 
