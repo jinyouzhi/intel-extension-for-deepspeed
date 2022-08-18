@@ -7,10 +7,10 @@
 #include <vector>
 #include <oneapi/mkl.hpp>
 #include <oneapi/mkl/rng/device.hpp>
-#include <ext/intel/experimental/bfloat16.hpp>
+#include <ext/oneapi/experimental/bfloat16.hpp>
 #include <ipex.h>
 
-using bf16 = sycl::ext::intel::experimental::bfloat16;
+using bf16 = sycl::ext::oneapi::experimental::bfloat16;
 
 #define WARP_SIZE 32
 #define ONEMKL_OP_T oneapi::mkl::transpose::trans

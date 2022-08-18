@@ -1,8 +1,8 @@
 #include <CL/sycl.hpp>
 using namespace cl::sycl;
-#include <ext/intel/experimental/bfloat16.hpp>
+#include <ext/oneapi/experimental/bfloat16.hpp>
 
-using bf16 = sycl::ext::intel::experimental::bfloat16;
+using bf16 = sycl::ext::oneapi::experimental::bfloat16;
 
 inline float gelu(const float x)
 {
