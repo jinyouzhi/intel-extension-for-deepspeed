@@ -129,8 +129,8 @@ void test_queue_with_accessor(void)
             }
           }
         };
-        sycl::queue dq(d_selector, exception_handler, {DPCPP::property::queue::in_order(),
-                                                       DPCPP::property::queue::enable_profiling()});
+        sycl::queue dq(d_selector, exception_handler, {sycl::property::queue::in_order(),
+                                                       sycl::property::queue::enable_profiling()});
         struct {
             unsigned char block_to_tensor[320];
             int block_to_chunk[320];
