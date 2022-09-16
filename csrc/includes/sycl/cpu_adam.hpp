@@ -77,19 +77,22 @@ public:
               float* _exp_avg,
               float* _exp_avg_sq,
               size_t param_size,
-              sycl::half* dev_param = nullptr);
+              sycl::half* dev_param = nullptr,
+              bool half_precision = false);
     void Step_4(float* _params,
                 float* grads,
                 float* _exp_avg,
                 float* _exp_avg_sa,
                 size_t param_size,
-                sycl::half* dev_param = nullptr);
+                sycl::half* dev_param = nullptr,
+                bool half_precision = false);
     void Step_8(float* _params,
                 float* grads,
                 float* _exp_avg,
                 float* _exp_avg_sq,
                 size_t _param_size,
-                sycl::half* dev_params = nullptr);
+                sycl::half* dev_params = nullptr,
+                bool half_precision = false);
     inline void SynchronizeStreams()
         {
             for (int i = 0; i < 2; i++) _streams[i]->wait();

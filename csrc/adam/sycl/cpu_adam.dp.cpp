@@ -22,8 +22,17 @@ void Adam_Optimizer::Step(float* _params,
                           float* _exp_avg,
                           float* _exp_avg_sq,
                           size_t _param_size,
-                          sycl::half* dev_params)
-{
+                          sycl::half* dev_params,
+                          bool half_precision)
+{   
+
+    sycl::half* grads_cast_h;
+    sycl::half* params_cast_h;
+    if (half_precision) {
+        grads_cast_h = reinterpret_cast<sycl::half*>(grads);
+        params_cast_h = reinterpret_cast<sycl::half*>(_params);
+    }
+
     float betta1_minus1 = 1 - _betta1;
     float betta2_minus1 = 1 - _betta2;
 
@@ -109,7 +118,7 @@ void Adam_Optimizer::Step(float* _params,
     }
 
 #endif
-
+    
     if (_param_size > rounded_size) {
         for (size_t t = rounded_size; t < _param_size; t += TILE) {
             size_t copy_size = TILE;
@@ -118,8 +127,8 @@ void Adam_Optimizer::Step(float* _params,
             if ((t / TILE) >= 2) { _streams[_buf_index]->wait(); }
 #pragma omp parallel for
             for (size_t k = t; k < offset; k++) {
-                float grad = grads[k];
-                float param = _params[k];
+                float grad = half_precision ? (float)grads_cast_h[k] : grads[k];
+                float param = half_precision ? (float)params_cast_h[k] : _params[k];
                 float momentum = _exp_avg[k];
                 float variance = _exp_avg_sq[k];
                 if (_weight_decay > 0 && !_adamw_mode) { grad = param * _weight_decay + grad; }
@@ -137,7 +146,14 @@ void Adam_Optimizer::Step(float* _params,
                 param = grad * step_size + param;
                 if (dev_params) _doubled_buffer[_buf_index][k - t] = param;
 
-                _params[k] = param;
+
+                if (half_precision)
+                    params_cast_h[k] = (sycl::half)param;
+                else
+                    _params[k] = param;
+
+
+                // _params[k] = param;
                 _exp_avg[k] = momentum;
                 _exp_avg_sq[k] = variance;
             }
@@ -155,7 +171,8 @@ void Adam_Optimizer::Step_4(float* _params,
                             float* _exp_avg,
                             float* _exp_avg_sq,
                             size_t _param_size,
-                            sycl::half* dev_params)
+                            sycl::half* dev_params,
+                            bool half_precision)
 {
     size_t rounded_size = 0;
 
@@ -312,7 +329,8 @@ void Adam_Optimizer::Step_4(float* _params,
              (_exp_avg + rounded_size),
              (_exp_avg_sq + rounded_size),
              (_param_size - rounded_size),
-             (dev_params != nullptr ? (dev_params + rounded_size) : dev_params));
+             (dev_params != nullptr ? (dev_params + rounded_size) : dev_params),
+             half_precision);
 }
 
 int create_adam_optimizer(int optimizer_id,
@@ -360,7 +378,8 @@ void Adam_Optimizer::Step_8(float* _params,
                             float* _exp_avg,
                             float* _exp_avg_sq,
                             size_t _param_size,
-                            sycl::half* dev_params)
+                            sycl::half* dev_params,
+                            bool half_precision)
 {
     size_t rounded_size = 0;
 
@@ -593,7 +612,8 @@ void Adam_Optimizer::Step_8(float* _params,
                (_exp_avg + rounded_size),
                (_exp_avg_sq + rounded_size),
                (_param_size - rounded_size),
-               (dev_params != nullptr ? (dev_params + rounded_size) : dev_params));
+               (dev_params != nullptr ? (dev_params + rounded_size) : dev_params),
+               half_precision);
 }
 
 int ds_adam_step(int optimizer_id,
@@ -623,7 +643,13 @@ int ds_adam_step(int optimizer_id,
         std::static_pointer_cast<Adam_Optimizer>(s_optimizers[optimizer_id]);
     opt->IncrementStep(step, beta1, beta2);
     opt->update_state(lr, epsilon, weight_decay, bias_correction);
-    opt->Step_8(params_ptr, grads_ptr, exp_avg_ptr, exp_avg_sq_ptr, params_c.size(0));
+    opt->Step_8(params_ptr, 
+                grads_ptr,
+                exp_avg_ptr,    
+                exp_avg_sq_ptr,
+                params_c.size(0),
+                nullptr,
+                (params.options().dtype() == at::kHalf));
 
     opt->SynchronizeStreams();
     return 0;
