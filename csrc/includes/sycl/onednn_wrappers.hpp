@@ -1,9 +1,9 @@
 #pragma once
 #include <CL/sycl.hpp>
-#include <ext/oneapi/experimental/bfloat16.hpp>
+#include <ext/intel/experimental/bfloat16.hpp>
 
 using namespace cl::sycl;
-using bf16 = sycl::ext::oneapi::experimental::bfloat16;
+using bf16 = sycl::ext::intel::experimental::bfloat16;
 
 int onednn_matmul_ex(sycl::queue *handle,
                      bool trans_src,
