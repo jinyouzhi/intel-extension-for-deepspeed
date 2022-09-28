@@ -1,3 +1,4 @@
+import torch
 from deepspeed.accelerator.abstract_accelerator import DeepSpeedAccelerator
 import intel_extension_for_pytorch as ipex  # noqa: F401
 import oneccl_bindings_for_pytorch  #noqa: F401
@@ -19,6 +20,11 @@ class XPU_Accelerator(DeepSpeedAccelerator):
     def device(self, device_index=None):
         return torch.xpu.device(device_index)
 
+    def literal_device(self, device_index=None):
+        if device_index == None:
+            return 'xpu'
+        return 'xpu:{}'.format(device_index)
+
     def set_device(self, device_index):
         torch.xpu.set_device(device_index)
 
@@ -36,6 +42,8 @@ class XPU_Accelerator(DeepSpeedAccelerator):
         return torch.xpu.set_rng_state(new_state, device_index)
 
     def get_rng_state(self, device_index=None):
+        if device_index == None:
+            return torch.xpu.get_rng_state()
         return torch.xpu.get_rng_state(device_index)
 
     def manual_seed(self, seed):
@@ -51,8 +59,8 @@ class XPU_Accelerator(DeepSpeedAccelerator):
         return torch.xpu.default_generators[device_index]
 
     # Streams/Events
-    def Stream(self, device_index=None, priority=0, **kwargs):
-        return torch.xpu.Stream(device_index, priority, **kwargs)
+    def Stream(self, device=None, priority=0, **kwargs):
+        return torch.xpu.Stream(device, priority, **kwargs)
 
     def StreamContext(self, stream):
         return torch.xpu.StreamContext(stream)
@@ -119,3 +127,7 @@ class XPU_Accelerator(DeepSpeedAccelerator):
 
     def is_fp16_supported(self):
         return True
+
+    # Tensor operations
+    def pin_memory(self, tensor):
+        return tensor.pin_memory(device=current_device())
