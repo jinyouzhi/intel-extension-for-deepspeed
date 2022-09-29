@@ -31,6 +31,9 @@ class XPU_Accelerator(DeepSpeedAccelerator):
     def current_device(self):
         return torch.xpu.current_device()
 
+    def current_device_name(self):
+        return 'xpu:{}'.format(torch.xpu.current_device())
+
     def device_count(self):
         return torch.xpu.device_count()
 
