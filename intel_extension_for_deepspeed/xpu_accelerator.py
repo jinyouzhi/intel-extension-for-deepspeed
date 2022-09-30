@@ -20,7 +20,7 @@ class XPU_Accelerator(DeepSpeedAccelerator):
     def device(self, device_index=None):
         return torch.xpu.device(device_index)
 
-    def literal_device(self, device_index=None):
+    def device_name(self, device_index=None):
         if device_index == None:
             return 'xpu'
         return 'xpu:{}'.format(device_index)
@@ -67,6 +67,9 @@ class XPU_Accelerator(DeepSpeedAccelerator):
 
     def StreamContext(self, stream):
         return torch.xpu.StreamContext(stream)
+
+    def stream(self, stream):
+        return torch.xpu.stream(stream)
 
     def current_stream(self, device_index=None):
         return torch.xpu.current_stream(device_index)
@@ -133,4 +136,11 @@ class XPU_Accelerator(DeepSpeedAccelerator):
 
     # Tensor operations
     def pin_memory(self, tensor):
-        return tensor.pin_memory(device=current_device())
+        return tensor.pin_memory(device=self.current_device_name())
+
+    def on_accelerator(self, tensor):
+        device_str = str(tensor.device)
+        if device_str.startswith('xpu:'):
+            return True
+        else:
+            return False
