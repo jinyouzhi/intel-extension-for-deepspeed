@@ -121,8 +121,8 @@ class XPU_Accelerator(DeepSpeedAccelerator):
     def range_push(self, msg):
         return torch.xpu.itt.range_push(msg)
 
-    def range_pop(self, msg):
-        return torch.xpu.itt.range_pop(msg)
+    def range_pop(self):
+        return torch.xpu.itt.range_pop()
 
     def lazy_call(self, callback):
         return torch.xpu._lazy_call(callback)
