@@ -6,8 +6,8 @@ import oneccl_bindings_for_pytorch  #noqa: F401
 
 class XPU_Accelerator(DeepSpeedAccelerator):
     def __init__(self):
-        self.name = 'xpu'
-        self.communication_backend = 'ccl'
+        self._name = 'xpu'
+        self._communication_backend = 'ccl'
         self.DoubleTensor = torch.xpu.DoubleTensor
         self.LongTensor = torch.xpu.LongTensor
         self.FloatTensor = torch.xpu.FloatTensor
@@ -17,13 +17,13 @@ class XPU_Accelerator(DeepSpeedAccelerator):
         self.ByteTensor = torch.xpu.ByteTensor
 
     # Device APIs
-    def device(self, device_index=None):
-        return torch.xpu.device(device_index)
-
     def device_name(self, device_index=None):
         if device_index == None:
             return 'xpu'
         return 'xpu:{}'.format(device_index)
+
+    def device(self, device_index=None):
+        return torch.xpu.device(device_index)
 
     def set_device(self, device_index):
         torch.xpu.set_device(device_index)
@@ -126,6 +126,9 @@ class XPU_Accelerator(DeepSpeedAccelerator):
 
     def lazy_call(self, callback):
         return torch.xpu._lazy_call(callback)
+
+    def communication_backend_name(self):
+        return self._communication_backend_name
 
     # Data types
     def is_bf16_supported(self):
