@@ -7,7 +7,7 @@ import oneccl_bindings_for_pytorch  #noqa: F401
 class XPU_Accelerator(DeepSpeedAccelerator):
     def __init__(self):
         self._name = 'xpu'
-        self._communication_backend = 'ccl'
+        self._communication_backend_name = 'ccl'
         self.DoubleTensor = torch.xpu.DoubleTensor
         self.LongTensor = torch.xpu.LongTensor
         self.FloatTensor = torch.xpu.FloatTensor
@@ -24,6 +24,12 @@ class XPU_Accelerator(DeepSpeedAccelerator):
 
     def device(self, device_index=None):
         return torch.xpu.device(device_index)
+    
+    def name(self):
+        return self._name
+    
+    def communication_backend_name(self):
+        return self._communication_backend_name
 
     def set_device(self, device_index):
         torch.xpu.set_device(device_index)
