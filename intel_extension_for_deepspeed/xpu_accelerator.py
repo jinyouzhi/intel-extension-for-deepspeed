@@ -105,8 +105,14 @@ class XPU_Accelerator(DeepSpeedAccelerator):
     def reset_max_memory_allocated(self, device_index=None):
         return torch.xpu.reset_max_memory_allocated(device_index)
 
+    def memory_cached(self, device_index=None):
+        return torch.xpu.memory_reserved(device_index)
+
+    def max_memory_cached(self, device_index=None):
+        return torch.xpu.max_memory_reserved(device_index)
+
     def reset_max_memory_cached(self, device_index=None):
-        return torch.xpu.reset_max_memory_cached(device_index)
+        return torch.xpu.reset_max_memory_reserved(device_index)
 
     def memory_stats(self, device_index=None):
         return torch.xpu.memory_stats(device_index)
