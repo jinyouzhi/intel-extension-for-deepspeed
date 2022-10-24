@@ -47,6 +47,9 @@ class XPU_Accelerator(DeepSpeedAccelerator):
         return torch.xpu.synchronize(device_index)
 
     # RNG APIs
+    def random(self):
+        return torch.xpu.random
+    
     def set_rng_state(self, new_state, device_index=None):
         return torch.xpu.set_rng_state(new_state, device_index)
 
@@ -121,6 +124,9 @@ class XPU_Accelerator(DeepSpeedAccelerator):
         return torch.xpu.get_device_properties(device_index).total_memory
 
     # Misc
+    def amp(self):
+        return torch.xpu.amp
+    
     def is_available(self):
         return torch.xpu.is_available()
 
