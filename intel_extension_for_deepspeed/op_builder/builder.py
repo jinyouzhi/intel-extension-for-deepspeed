@@ -8,22 +8,21 @@ from deepspeed.ops.op_builder.builder import OpBuilder, TORCH_MAJOR, TORCH_MINOR
 
 class SYCLOpBuilder(OpBuilder):
     def builder(self):
-        if self.is_xpu_pytorch():
+        try:
+            from intel_extension_for_pytorch.xpu.cpp_extension import DPCPPExtension
+        except ImportError:
             from intel_extension_for_pytorch.xpu.utils import DPCPPExtension
 
-            print ("dpcpp sources = {}".format(self.sources()))
-            dpcpp_ext = DPCPPExtension(
-                name=self.absolute_name(),
-                sources=self.strip_empty_entries(self.sources()),
-                include_dirs=self.strip_empty_entries(self.include_paths()),
-                extra_compile_args={
-                    'cxx': self.strip_empty_entries(self.cxx_args()),
-                },
-                extra_link_args=self.strip_empty_entries(self.extra_ldflags()))
-            return dpcpp_ext
-        # Add more SYCL compatible device via elif
-        else:
-            raise Exception(f"Unknown SYCL sub type.")
+        print ("dpcpp sources = {}".format(self.sources()))
+        dpcpp_ext = DPCPPExtension(
+            name=self.absolute_name(),
+            sources=self.strip_empty_entries(self.sources()),
+            include_dirs=self.strip_empty_entries(self.include_paths()),
+            extra_compile_args={
+                'cxx': self.strip_empty_entries(self.cxx_args()),
+            },
+            extra_link_args=self.strip_empty_entries(self.extra_ldflags()))
+        return dpcpp_ext
 
     def version_dependent_macros(self):
         # Fix from apex that might be relevant for us as well, related to https://github.com/NVIDIA/apex/issues/456

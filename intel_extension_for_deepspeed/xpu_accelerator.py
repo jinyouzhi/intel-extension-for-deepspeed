@@ -167,7 +167,7 @@ class XPU_Accelerator(DeepSpeedAccelerator):
             return False
 
     def create_op_builder(self, op_name):
-        from intel_extension_for_deepspeed.op_builder import CPUAdagradBuilder, CPUAdamBuilder, DropoutBuilder,FeedForwardBuilder, FusedAdamBuilder, GeluBuilder, LayerReorderBuilder, NormalizeBuilder, QuantizerBuilder, SoftmaxBuilder, StochasticTransformerBuilder, StridedBatchGemmBuilder, TransformerBuilder, UtilsBuilder
+        from intel_extension_for_deepspeed.op_builder import CPUAdagradBuilder, CPUAdamBuilder, FusedAdamBuilder, QuantizerBuilder, StochasticTransformerBuilder, TransformerBuilder, UtilsBuilder
         from deepspeed.ops.op_builder import AsyncIOBuilder, SparseAttnBuilder
         if op_name == "AsyncIOBuilder":
             return AsyncIOBuilder()
@@ -175,31 +175,24 @@ class XPU_Accelerator(DeepSpeedAccelerator):
             return CPUAdagradBuilder()
         elif op_name == "CPUAdamBuilder":
             return CPUAdamBuilder()
-        elif op_name == "DropoutBuilder":
-            return DropoutBuilder()
-        elif op_name == "FeedForwardBuilder":
-            return FeedForwardBuilder()
         elif op_name == "FusedAdamBuilder":
             return FusedAdamBuilder()
-        elif op_name == "GeluBuilder":
-            return GeluBuilder()
-        elif op_name == "LayerReorderBuilder":
-            return LayerReorderBuilder()
-        elif op_name == "NormalizeBuilder":
-            return NormalizeBuilder()
         elif op_name == "QuantizerBuilder":
             return QuantizerBuilder()
-        elif op_name == "SoftmaxBuilder":
-            return SoftmaxBuilder()
         elif op_name == "SparseAttnBuilder":
             return SparseAttnBuilder()
         elif op_name == "StochasticTransformerBuilder":
             return StochasticTransformerBuilder()
-        elif op_name == "StridedBatchGemmBuilder":
-            return StridedBatchGemmBuilder()
         elif op_name == "TransformerBuilder":
             return TransformerBuilder()
         elif op_name == "UtilsBuilder":
             return UtilsBuilder()
         else:
             return None
+
+    def build_extension(self):
+        try:
+            from intel_extension_for_pytorch.xpu.cpp_extension import DpcppBuildExtension
+        except ImportError:
+            from intel_extension_for_pytorch.xpu.utils import DpcppBuildExtension
+        return DpcppBuildExtension
