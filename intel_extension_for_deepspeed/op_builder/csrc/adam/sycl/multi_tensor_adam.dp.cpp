@@ -116,7 +116,11 @@ void AdamFunctor (sycl::nd_item<1> item_ct1,
 void test_queue_with_accessor(void)
 {
         printf ("Test queue with accessor\n");
-        sycl::queue* stream = &(xpu::dpcpp::getCurrentDPCPPStream().dpcpp_queue());
+        auto type_ = c10::DeviceType::XPU;
+        c10::impl::VirtualGuardImpl  impl(type_);
+        auto device_ = c10::Device(type_);
+        c10::Stream dpcpp_stream =impl.getStream(device_);
+        sycl::queue* stream = &(xpu::get_queue_from_stream(dpcpp_stream));
         sycl::default_selector d_selector;
         static auto exception_handler = [](sycl::exception_list e_list) {
           for (std::exception_ptr const &e : e_list) {

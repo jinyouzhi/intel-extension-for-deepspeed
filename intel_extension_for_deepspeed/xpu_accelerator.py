@@ -143,7 +143,7 @@ class XPU_Accelerator(DeepSpeedAccelerator):
         return torch.xpu.itt.range_pop()
 
     def lazy_call(self, callback):
-        return torch.xpu._lazy_call(callback)
+        return torch.xpu.lazy_init._lazy_call(callback)
 
     def communication_backend_name(self):
         return self._communication_backend_name

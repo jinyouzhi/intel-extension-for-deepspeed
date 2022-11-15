@@ -7,10 +7,12 @@
 #include <vector>
 #include <oneapi/mkl.hpp>
 #include <oneapi/mkl/rng/device.hpp>
-#include <ext/intel/experimental/bfloat16.hpp>
+#include <ext/oneapi/experimental/bfloat16.hpp>
 #include <ipex.h>
-
-using bf16 = sycl::ext::intel::experimental::bfloat16;
+#include <ATen/record_function.h>
+#include <torch/extension.h>
+#include <torch/library.h>
+using bf16 = sycl::ext::oneapi::experimental::bfloat16;
 
 #define WARP_SIZE 32
 #define ONEMKL_OP_T oneapi::mkl::transpose::trans
@@ -41,13 +43,19 @@ inline int DS_GET_BLOCKS(const int N)
 class SyclContext {
 public:
     SyclContext() try : _workspace(nullptr), _seed(42), _curr_offset(0) {
+
+
+         auto type_ = c10::DeviceType::XPU;
+        c10::impl::VirtualGuardImpl  impl(type_);
+        auto device_ = c10::Device(type_);
+        c10::Stream dpcpp_stream =impl.getStream(device_);
         _gen = new oneapi::mkl::rng::philox4x32x10(
-            xpu::dpcpp::getCurrentDPCPPStream().dpcpp_queue(), 123);
+            xpu::get_queue_from_stream(dpcpp_stream), 123);
         /*
         DPCT1003:12: Migrated API does not return error code. (*, 0) is inserted. You may need to
         rewrite this code.
         */
-        if ((_onemklQ = &xpu::dpcpp::getCurrentDPCPPStream().dpcpp_queue(), 0) != 0) {
+        if ((_onemklQ = &xpu::get_queue_from_stream(dpcpp_stream), 0) != 0) {
             auto message = std::string("Fail to create onemkl queue.");
             std::cerr << message << std::endl;
             throw std::runtime_error(message);
@@ -63,7 +71,12 @@ public:
     {
         _onemklQ = nullptr;
         free(_gen);
-        sycl::free(_workspace, xpu::dpcpp::getCurrentDPCPPStream().dpcpp_queue());
+
+        auto type_ = c10::DeviceType::XPU;
+        c10::impl::VirtualGuardImpl  impl(type_);
+        auto device_ = c10::Device(type_);
+        c10::Stream dpcpp_stream =impl.getStream(device_);
+        sycl::free(_workspace, xpu::get_queue_from_stream(dpcpp_stream));
     }
 
     static SyclContext& Instance()
@@ -89,11 +102,24 @@ public:
     sycl::queue* GetCurrentStream()
     {
         // get current pytorch stream.
-        return &xpu::dpcpp::getCurrentDPCPPStream().dpcpp_queue();
+        // return &xpu::dpcpp::getCurrentDPCPPStream().dpcpp_queue();
+
+        auto type_ = c10::DeviceType::XPU;
+        c10::impl::VirtualGuardImpl  impl(type_);
+        auto device_ = c10::Device(type_);
+        c10::Stream dpcpp_stream =impl.getStream(device_);
+        return &xpu::get_queue_from_stream(dpcpp_stream);
     }
 
     sycl::queue* GetNewStream() {
-        return &(xpu::dpcpp::getDPCPPStreamFromPool(true, -1).dpcpp_queue());
+        auto type_ = c10::DeviceType::XPU;
+        c10::impl::VirtualGuardImpl  impl(type_);
+        auto device_ = c10::Device(type_);
+        c10::Stream dpcpp_stream =impl.getStream(device_);
+        c10::Stream stream = impl.getStreamFromGlobalPool(device_, /*isHighPriority=*/false);
+
+
+        return &xpu::get_queue_from_stream(dpcpp_stream);
     }
 
     sycl::queue* GetOneMKLQ() { return _onemklQ; }

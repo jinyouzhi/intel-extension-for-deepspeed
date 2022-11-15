@@ -7,11 +7,11 @@
 #include <CL/sycl.hpp>
 #include <ATen/ATen.h>
 #include <ATen/AccumulateType.h>
-#include <core/Stream.h>
 #include "sycl/context.hpp"
 #include "compat.h"
 
 #include <assert.h>
+#include <xpu/Stream.h>
 
 // #include <iostream>
 
