@@ -91,7 +91,7 @@ void multi_tensor_apply(int block_size,
 
     TensorListMetadata<depth> tl;
 
-    // TODO guokai need something for PVC as well░
+    // TODO guokai need something for PVC as well
     //const at::cuda::OptionalCUDAGuard device_guard(device_of(tensor_lists[0][0]));
 
     sycl::queue * stream = SyclContext::Instance().GetCurrentStream();
