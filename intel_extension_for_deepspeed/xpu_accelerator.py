@@ -24,12 +24,6 @@ class XPU_Accelerator(DeepSpeedAccelerator):
 
     def device(self, device_index=None):
         return torch.xpu.device(device_index)
-    
-    def name(self):
-        return self._name
-    
-    def communication_backend_name(self):
-        return self._communication_backend_name
 
     def set_device(self, device_index):
         torch.xpu.set_device(device_index)
