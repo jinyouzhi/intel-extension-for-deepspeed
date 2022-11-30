@@ -108,26 +108,46 @@ class SYCLOpBuilder(OpBuilder):
 
 
 def sycl_kernel_path(code_path):
-    from .fused_adam import FusedAdamBuilder
-    import intel_extension_for_pytorch  # noqa: F401
+    # Always return a path like "INTEL_DIR_NAME/..."
+    INTEL_DIR_NAME = "third-party"
     abs_source_path = os.path.join(Path(__file__).parent.absolute(), code_path)
-    rel_target_path = os.path.join("third-party", code_path)
+    rel_target_path = os.path.join(INTEL_DIR_NAME, code_path)
 
-    # jit_load mode require absolute path. Use abs path for copy
+    # Jit_load mode require absolute path. Use abs path for copy
+    # To get the absolute path of deepspeed
+    # We use a non-abstract builder class instance to call deepspeed_src_path()
+    # FusedAdamBuilder is one of such class instance
+    from .fused_adam import FusedAdamBuilder
     abs_target_path = FusedAdamBuilder().deepspeed_src_path(rel_target_path)
+
+    intel_link_path = os.path.join(
+        os.path.dirname(FusedAdamBuilder().deepspeed_src_path("")),
+        INTEL_DIR_NAME)
+    if not os.path.exists(intel_link_path):
+        # Create intel directory and link:  deepspeed/ops/INTEL_DIR_NAME-->../../INTEL_DIR_NAME
+        intel_dir_path = os.path.join(os.path.dirname(intel_link_path),
+                                      "../../" + INTEL_DIR_NAME)
+
+        os.mkdir(intel_dir_path)
+        os.symlink("../../" + INTEL_DIR_NAME, intel_link_path, True)
+        print("Create home directory and link for intel:{}-->{}".format(
+            intel_link_path,
+            intel_dir_path))
+
     import filecmp
     if (os.path.exists(abs_target_path) and filecmp.cmp(abs_target_path,
                                                         abs_source_path)):
-        print("skip copy, {} and {} are has the same content".format(
+        print("skip copy, {} and {} have the same content".format(
             abs_source_path,
             abs_target_path))
-        return os.path.join("deepspeed/ops", rel_target_path)
+        return rel_target_path
+
     print("Copying SYCL kernel file from {} to {}".format(abs_source_path,
                                                           abs_target_path))
     os.makedirs(os.path.dirname(abs_target_path), exist_ok=True)
     shutil.copyfile(abs_source_path, abs_target_path)
 
-    # prebuild mode paths require relative to the setup.py directory. Use relative path
+    # Prebuild install mode require paths relative to the setup.py directory. Use the relative path.
     return rel_target_path
 
 
