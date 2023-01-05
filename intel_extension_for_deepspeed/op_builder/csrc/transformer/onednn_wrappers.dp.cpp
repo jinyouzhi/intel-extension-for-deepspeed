@@ -67,17 +67,16 @@ inline int onednn_matmul(sycl::queue* handle,
     auto wgt_mem = dnnl::memory(wgt_md, engine, (void*)wgt_ptr);
     auto dst_mem = dnnl::memory(dst_md, engine, (void*)dst_ptr);
 
-    auto matmul_d = dnnl::matmul::desc(src_md, wgt_md, dst_md);
-
     dnnl::primitive_attr attr;
-    if (alpha != 1.0f) attr.set_output_scales(0, {alpha});
+    // if (alpha != 1.0f)
+    //     attr.set_output_scales(0, {alpha});
     if (beta != 0.0f) {
         dnnl::post_ops po;
         po.append_sum(beta);
         attr.set_post_ops(po);
     }
 
-    auto matmul_pd = dnnl::matmul::primitive_desc(matmul_d, attr, engine);
+    auto matmul_pd = dnnl::matmul::primitive_desc(engine, src_md, wgt_md, dst_md);
 
     auto matmul_prim = dnnl::matmul(matmul_pd);
 
