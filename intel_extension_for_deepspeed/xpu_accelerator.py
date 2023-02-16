@@ -8,6 +8,15 @@ class XPU_Accelerator(DeepSpeedAccelerator):
     def __init__(self):
         self._name = 'xpu'
         self._communication_backend_name = 'ccl'
+        def _check_and_mapping_ccl_launcher_parameter():
+            import os
+            if not os.environ.get("CCL_LOCAL_RANK") and \
+               "none" == os.environ.get("CCL_PROCESS_LAUNCHER"):
+                os.environ["CCL_LOCAL_RANK"] = os.environ.get("LOCAL_RANK")
+            if not os.environ.get("CCL_LOCAL_SIZE") and \
+               "none" == os.environ.get("CCL_PROCESS_LAUNCHER"):
+                os.environ["CCL_LOCAL_SIZE"] = os.environ.get("LOCAL_SIZE")
+        _check_and_mapping_ccl_launcher_parameter()
 
     # Device APIs
     def device_name(self, device_index=None):
